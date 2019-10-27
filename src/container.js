@@ -1,10 +1,12 @@
 import isFunction from "is-function";
 
-export default class IocContainer {
+export default class Container {
   constructor() {
     this.dependencies = {};
 
-    return this;
+    return new Proxy(this, {
+      get: (target, name) => (name in target ? target[name] : target.get(name))
+    });
   }
 
   /**
@@ -18,25 +20,28 @@ export default class IocContainer {
       throw new Error(`Dependecy ${name} not exists in the container.`);
     }
 
-    return dependencies[name](this);
+    const dependency = dependencies[name];
+
+    return dependency.factory ? dependency.value(this) : dependency.value;
   }
 
   /**
    * Registers a dependency in the container.
    * @param {String} name The name to use the dependency later.
-   * @param {Function} factory The function who returns the dependency.
+   * @param {Object} value The function who returns the dependency.
    */
-  register(name, factory) {
+  add(name, value, factory) {
     const { dependencies } = this;
 
-    if (name === undefined || factory === undefined) {
+    if (name === undefined || value === undefined) {
       throw new Error(
-        `You need to provide a name and a factory function to register a dependency.`
+        `You need to provide a name and a value/factory function to register a dependency.`
       );
     }
 
     if (
-      name === "register" ||
+      name === "add" ||
+      name === "addFactory" ||
       name === "remove" ||
       name === "update" ||
       name === "get"
@@ -52,14 +57,21 @@ export default class IocContainer {
       );
     }
 
-    if (!isFunction(factory)) {
+    if (isFunction(value) && value(this) === undefined) {
       throw new Error(
-        `Can't register ${name} if the second parameter it's not a function.`
+        `Dependecy ${name} anonymous function don't return nothing, or returns undefined. Avoid register useless dependencies.`
       );
     }
 
-    dependencies[name] = factory;
-    this[name] = this.get(name);
+    dependencies[name] = {
+      name,
+      value: isFunction(value) && !factory ? value(this) : value,
+      factory: factory === true
+    };
+  }
+
+  addFactory(name, value) {
+    this.add(name, value, true);
   }
 
   /**
@@ -74,20 +86,5 @@ export default class IocContainer {
     }
 
     delete dependencies[name];
-  }
-
-  /**
-   * Overrides a dependency from the container.
-   * @param {String} name The already registered depedency.
-   * @param {Function} factory The new dependency.
-   */
-  update(name, factory) {
-    const { dependencies } = this;
-
-    if (dependencies[name] === undefined) {
-      throw new Error(`Dependecy ${name} not exists in the container.`);
-    }
-
-    dependencies[name] = factory;
   }
 }
