@@ -34,7 +34,7 @@ deico it's easy to use:
 > You can access to your dependencies like a object parameter, to use destructuring and make your code cleaner. The factories will keep working.
 
 ```js
-const { Container } = require("../../lib");
+const { Container } = require("deico");
 
 // Create the container
 const container = new Container();
@@ -66,7 +66,7 @@ console.info(container.get("sayHelloBetter")); // "Hello world!"
 ### Usage with factories
 
 ```js
-const { Container } = require("../../lib");
+const { Container } = require("deico");
 
 const container = new Container();
 
