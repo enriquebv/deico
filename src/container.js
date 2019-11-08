@@ -3,10 +3,7 @@ import isFunction from "is-function";
 export default class Container {
   constructor() {
     this.dependencies = {};
-
-    return new Proxy(this, {
-      get: (target, name) => (name in target ? target[name] : target.get(name))
-    });
+    return this;
   }
 
   /**
@@ -65,7 +62,10 @@ export default class Container {
 
     dependencies[name] = {
       name,
-      value: isFunction(value) && !factory ? value(this) : value,
+      value:
+        isFunction(value) && !factory
+          ? value.call(value, this)
+          : value.bind(value),
       factory: factory === true
     };
   }

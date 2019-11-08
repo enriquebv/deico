@@ -52,15 +52,7 @@ container.add("sayHello", container => {
   return container.get("joinWords")(container.get("messageChunks"));
 });
 
-// Use both (with destructuring)
-container.add("sayHelloBetter", container => {
-  const { joinWords, messageChunks } = container;
-
-  return joinWords(messageChunks);
-});
-
 console.info(container.get("sayHello")); // "Hello world!"
-console.info(container.get("sayHelloBetter")); // "Hello world!"
 ```
 
 ### Usage with factories
